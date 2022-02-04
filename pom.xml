@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>21</version>
+    <version>23</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -32,18 +32,20 @@
   <name>Proton-J Parent</name>
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-
     <!-- Test dependency versions -->
-    <junit-version>4.12</junit-version>
-    <mockito-version>2.23.4</mockito-version>
-    <jython-version>2.7.1</jython-version>
+    <junit-version>4.13.2</junit-version>
+    <mockito-version>3.11.2</mockito-version>
+    <jython-version>2.7.2</jython-version>
+    <bcpkix-jdk15on-version>1.69</bcpkix-jdk15on-version>
 
     <!-- Plugin versions -->
-    <maven-bundle-plugin-version>4.1.0</maven-bundle-plugin-version>
-    <jacoco-plugin-version>0.8.4</jacoco-plugin-version>
+    <maven-bundle-plugin-version>5.1.2</maven-bundle-plugin-version>
+    <jacoco-plugin-version>0.8.7</jacoco-plugin-version>
     <surefire.version>2.22.2</surefire.version>
+
+    <!-- See also maven.compiler.release in the java9on profile -->
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
 
     <!-- surefire forked jvm arguments -->
     <argLine>-Xmx2g -enableassertions ${jacoco-config}</argLine>
@@ -74,7 +76,13 @@
         <groupId>org.python</groupId>
         <artifactId>jython-standalone</artifactId>
         <version>${jython-version}</version>
-      <scope>test</scope>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcpkix-jdk15on</artifactId>
+        <version>${bcpkix-jdk15on-version}</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -108,6 +116,7 @@
           <excludes combine.children="append">
             <exclude>appveyor.yml</exclude>
             <exclude>.travis.yml</exclude>
+            <exclude>.github/workflows/*.yml</exclude>
             <exclude>.mailmap</exclude>
             <exclude>**/*.md</exclude>
             <exclude>**/*.pkcs12</exclude>
@@ -195,7 +204,7 @@
     <connection>scm:git:https://gitbox.apache.org/repos/asf/qpid-proton-j.git</connection>
     <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/qpid-proton-j.git</developerConnection>
     <url>https://gitbox.apache.org/repos/asf?p=qpid-proton-j.git</url>
-    <tag>0.33.4</tag>
+    <tag>HEAD</tag>
   </scm>
   <issueManagement>
     <url>https://issues.apache.org/jira/browse/PROTON</url>
@@ -269,6 +278,16 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+
+    <profile>
+      <id>java9on</id>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
+      <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+      </properties>
     </profile>
   </profiles>
 </project>

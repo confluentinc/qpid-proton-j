@@ -578,12 +578,30 @@ public class CompositeReadableBuffer implements ReadableBuffer {
         do {
             boolean endOfInput = processed == viewSpan;
             step = decoder.decode(wrapper, decoded, endOfInput);
-            if (step.isUnderflow() && endOfInput) {
-                step = decoder.flush(decoded);
-                break;
-            }
 
-            if (step.isOverflow()) {
+            if (step.isUnderflow()) {
+                if (endOfInput) {
+                    step = decoder.flush(decoded);
+                    break;
+                } if (wrapper.hasRemaining()) {
+                    final int unprocessed = wrapper.remaining();
+                    final byte[] next = contents.get(++arrayIndex);
+                    final ByteBuffer previous = wrapper;
+                    final int nextAmount = Math.min(next.length, viewSpan - processed);
+                    wrapper = ByteBuffer.allocate(unprocessed + nextAmount);
+
+                    wrapper.put(previous);
+                    wrapper.put(next, 0, nextAmount);
+                    processed += nextAmount;
+
+                    wrapper.flip();
+                } else {
+                    final byte[] next = contents.get(++arrayIndex);
+                    final int wrapSize = Math.min(next.length, viewSpan - processed);
+                    wrapper = ByteBuffer.wrap(next, 0, wrapSize);
+                    processed += wrapSize;
+                }
+            } else if (step.isOverflow()) {
                 size = 2 * size + 1;
                 CharBuffer upsized = CharBuffer.allocate(size);
                 decoded.flip();
@@ -591,11 +609,6 @@ public class CompositeReadableBuffer implements ReadableBuffer {
                 decoded = upsized;
                 continue;
             }
-
-            byte[] next = contents.get(++arrayIndex);
-            int wrapSize = Math.min(next.length, viewSpan - processed);
-            wrapper = ByteBuffer.wrap(next, 0, wrapSize);
-            processed += wrapSize;
         } while (!step.isError());
 
         if (step.isError()) {
