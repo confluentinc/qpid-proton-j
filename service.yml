@@ -1,0 +1,7 @@
+name: qpid-proton-j
+lang: unknown
+codeowners:
+  enable: true
+semaphore:
+  enable: true
+  pipeline_type: cp
